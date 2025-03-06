@@ -48,17 +48,29 @@ const StatCard = ({
 }: StatCardProps) => {
   const [showMonthly, setShowMonthly] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
 
   const handleToggleView = () => {
     if (!monthlyStats && onRequestMonthlyData) {
       onRequestMonthlyData();
     }
     
-    setIsTransitioning(true);
+    // Start the flip animation
+    setIsFlipping(true);
+    
+    // After half of the flip animation completes, change the data
     setTimeout(() => {
-      setShowMonthly(!showMonthly);
-      setIsTransitioning(false);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowMonthly(!showMonthly);
+        setIsTransitioning(false);
+      }, 150);
     }, 300);
+    
+    // Reset the flip animation state after it completes
+    setTimeout(() => {
+      setIsFlipping(false);
+    }, 600);
   };
 
   const currentStats = showMonthly && monthlyStats ? monthlyStats : stats;
@@ -104,9 +116,10 @@ const StatCard = ({
         loading && "opacity-90",
         isTransitioning && "animate-scale-out",
         !isTransitioning && showMonthly && "animate-scale-in",
+        isFlipping && "animate-flip",
         className
       )}
-      onClick={!isTransitioning ? handleToggleView : undefined}
+      onClick={!isTransitioning && !isFlipping ? handleToggleView : undefined}
     >
       <div className="flex justify-between items-start p-4 border-b">
         {showMonthly && (
