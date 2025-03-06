@@ -12,8 +12,8 @@ interface StatItemProps {
 
 const StatItem = ({ value, label, className }: StatItemProps) => (
   <div className={cn("flex flex-col items-center", className)}>
-    <div className="metric-value text-casinoGreen">{value}</div>
-    <div className="metric-label">{label}</div>
+    <div className="metric-value text-2xl md:text-3xl font-medium tracking-tight text-casinoGreen">{value}</div>
+    <div className="metric-label text-xs md:text-sm text-gray-500 font-normal">{label}</div>
   </div>
 );
 
@@ -64,10 +64,43 @@ const StatCard = ({
   const currentStats = showMonthly && monthlyStats ? monthlyStats : stats;
   const currentSubtitle = showMonthly ? subtitle.replace('Day', 'Month') : subtitle;
 
+  // Determine background and text colors based on card title
+  const getCardStyle = () => {
+    switch(title) {
+      case "DEPOSITS":
+        return "bg-gradient-to-br from-white to-blue-50 border-blue-200";
+      case "REVENUE":
+        return "bg-gradient-to-br from-white to-green-50 border-green-200";
+      case "PAYOUTS":
+        return "bg-gradient-to-br from-white to-orange-50 border-orange-200";
+      case "BONUS":
+        return "bg-gradient-to-br from-white to-purple-50 border-purple-200";
+      default:
+        return "bg-white";
+    }
+  };
+
+  // Determine title color based on card title
+  const getTitleColor = () => {
+    switch(title) {
+      case "DEPOSITS":
+        return "text-casinoBlue";
+      case "REVENUE":
+        return "text-casinoGreen";
+      case "PAYOUTS":
+        return "text-casinoOrange";
+      case "BONUS":
+        return "text-casinoPurple";
+      default:
+        return "text-foreground";
+    }
+  };
+
   return (
     <div 
       className={cn(
-        "tile-card animate-fade-in cursor-pointer", 
+        "tile-card rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+        getCardStyle(),
         loading && "opacity-90",
         isTransitioning && "animate-scale-out",
         !isTransitioning && showMonthly && "animate-scale-in",
@@ -80,7 +113,7 @@ const StatCard = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="p-1 mr-2" 
+            className="p-1 mr-2 text-gray-600" 
             onClick={(e) => {
               e.stopPropagation();
               handleToggleView();
@@ -92,21 +125,23 @@ const StatCard = ({
         )}
         
         {icon && (
-          <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
+          <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-white p-2 shadow-sm">
             {icon}
           </div>
         )}
         
         <div className={cn("flex flex-col items-end ml-auto", showMonthly && "pr-2")}>
-          <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+          <h3 className={cn("text-lg font-bold tracking-tight", getTitleColor())}>{title}</h3>
           <p className="text-xs text-muted-foreground">{currentSubtitle}</p>
         </div>
       </div>
       
       <div className={cn(
-        "grid grid-cols-4 gap-3 p-4",
-        currentStats.length <= 3 && "grid-cols-3",
-        currentStats.length <= 2 && "grid-cols-2"
+        "grid gap-3 p-4",
+        currentStats.length <= 3 ? "grid-cols-3" : 
+        currentStats.length === 4 ? "grid-cols-2 md:grid-cols-4" : 
+        currentStats.length <= 6 ? "grid-cols-3 md:grid-cols-3" : 
+        "grid-cols-2 md:grid-cols-4"
       )}>
         {loading ? (
           // Skeleton loading state
