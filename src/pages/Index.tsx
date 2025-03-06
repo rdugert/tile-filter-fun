@@ -23,6 +23,23 @@ const Index = () => {
   const [selectedCasino, setSelectedCasino] = useState('all');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
+  const [monthlyData, setMonthlyData] = useState<{
+    deposits?: DashboardSummary['deposits'],
+    revenue?: DashboardSummary['revenue'],
+    payouts?: DashboardSummary['payouts'],
+    bonus?: DashboardSummary['bonus']
+  }>({});
+  const [loadingMonthly, setLoadingMonthly] = useState<{
+    deposits: boolean,
+    revenue: boolean,
+    payouts: boolean,
+    bonus: boolean
+  }>({
+    deposits: false,
+    revenue: false,
+    payouts: false,
+    bonus: false
+  });
 
   // Fetch initial data
   useEffect(() => {
@@ -59,6 +76,8 @@ const Index = () => {
       setLoading(true);
       const data = await fetchDashboardData(selectedCasino, selectedCurrency, 'day');
       setDashboardData(data);
+      // Reset monthly data when filters change
+      setMonthlyData({});
       toast.success("Dashboard data refreshed");
     } catch (error) {
       console.error("Failed to refresh dashboard data", error);
@@ -78,6 +97,24 @@ const Index = () => {
   const handleCurrencyChange = (currency: string) => {
     setSelectedCurrency(currency);
     refreshData();
+  };
+
+  // Fetch monthly data for a specific card
+  const fetchMonthlyDataForCard = async (cardType: 'deposits' | 'revenue' | 'payouts' | 'bonus') => {
+    try {
+      setLoadingMonthly(prev => ({ ...prev, [cardType]: true }));
+      const data = await fetchDashboardData(selectedCasino, selectedCurrency, 'month');
+      
+      setMonthlyData(prev => ({
+        ...prev,
+        [cardType]: data[cardType]
+      }));
+    } catch (error) {
+      console.error(`Failed to fetch monthly ${cardType} data:`, error);
+      toast.error(`Failed to load monthly ${cardType} data`);
+    } finally {
+      setLoadingMonthly(prev => ({ ...prev, [cardType]: false }));
+    }
   };
 
   // Get subtitle text based on filters
@@ -109,7 +146,7 @@ const Index = () => {
           <StatCard
             title="DEPOSITS"
             subtitle={getSubtitleText("Deposits")}
-            loading={loading}
+            loading={loading || loadingMonthly.deposits}
             icon={
               <img 
                 src="/lovable-uploads/8be8d1a4-992a-4150-8d4b-ca76a352c53b.png" 
@@ -147,13 +184,44 @@ const Index = () => {
                 label: 'FD' 
               }
             ]}
+            monthlyStats={monthlyData.deposits ? [
+              { 
+                value: monthlyData.deposits.total.toLocaleString() || '0', 
+                label: 'Total Deposits' 
+              },
+              { 
+                value: monthlyData.deposits.psp.toLocaleString() || '0', 
+                label: 'PSP Deposits' 
+              },
+              { 
+                value: monthlyData.deposits.cashCrypto.toLocaleString() || '0', 
+                label: 'Cash & Crypto' 
+              },
+              { 
+                value: monthlyData.deposits.depositors.toString() || '0', 
+                label: 'Depositors' 
+              },
+              { 
+                value: monthlyData.deposits.activeUsers.toString() || '0', 
+                label: 'Active Users' 
+              },
+              { 
+                value: monthlyData.deposits.signups.toString() || '0', 
+                label: 'Signups' 
+              },
+              { 
+                value: monthlyData.deposits.fd.toString() || '0', 
+                label: 'FD' 
+              }
+            ] : undefined}
+            onRequestMonthlyData={() => fetchMonthlyDataForCard('deposits')}
           />
           
           {/* Revenue Card */}
           <StatCard
             title="REVENUE"
             subtitle={getSubtitleText("Revenue")}
-            loading={loading}
+            loading={loading || loadingMonthly.revenue}
             icon={
               <img 
                 src="/lovable-uploads/8be8d1a4-992a-4150-8d4b-ca76a352c53b.png" 
@@ -183,13 +251,36 @@ const Index = () => {
                 label: 'GGR TOT' 
               }
             ]}
+            monthlyStats={monthlyData.revenue ? [
+              { 
+                value: monthlyData.revenue.ggrRm.toLocaleString() || '0', 
+                label: 'GGR RM' 
+              },
+              { 
+                value: monthlyData.revenue.ggr.toLocaleString() || '0', 
+                label: 'GGR (RM-1)' 
+              },
+              { 
+                value: monthlyData.revenue.ggrRb.toLocaleString() || '0', 
+                label: 'GGR RB' 
+              },
+              { 
+                value: monthlyData.revenue.ggrPb.toLocaleString() || '0', 
+                label: 'GGR PB' 
+              },
+              { 
+                value: monthlyData.revenue.ggrTot.toLocaleString() || '0', 
+                label: 'GGR TOT' 
+              }
+            ] : undefined}
+            onRequestMonthlyData={() => fetchMonthlyDataForCard('revenue')}
           />
           
           {/* Payouts Card */}
           <StatCard
             title="PAYOUTS"
-            subtitle={getSubtitleText("Payouts").replace('Day', 'Month')}
-            loading={loading}
+            subtitle={getSubtitleText("Payouts")}
+            loading={loading || loadingMonthly.payouts}
             icon={
               <img 
                 src="/lovable-uploads/8be8d1a4-992a-4150-8d4b-ca76a352c53b.png" 
@@ -223,13 +314,40 @@ const Index = () => {
                 label: 'Pending Tot.' 
               }
             ]}
+            monthlyStats={monthlyData.payouts ? [
+              { 
+                value: monthlyData.payouts.rmApproved.toString() || '0', 
+                label: 'RM Approved' 
+              },
+              { 
+                value: monthlyData.payouts.rbApproved.toString() || '0', 
+                label: 'RB Approved' 
+              },
+              { 
+                value: monthlyData.payouts.totApproved.toString() || '0', 
+                label: 'Tot. Approved' 
+              },
+              { 
+                value: monthlyData.payouts.pendingRm.toLocaleString() || '0', 
+                label: 'Pending RM' 
+              },
+              { 
+                value: monthlyData.payouts.pendingRb.toLocaleString() || '0', 
+                label: 'Pending RB' 
+              },
+              { 
+                value: monthlyData.payouts.pendingTot.toLocaleString() || '0', 
+                label: 'Pending Tot.' 
+              }
+            ] : undefined}
+            onRequestMonthlyData={() => fetchMonthlyDataForCard('payouts')}
           />
           
           {/* Bonus Card */}
           <StatCard
             title="BONUS"
             subtitle={getSubtitleText("Bonus")}
-            loading={loading}
+            loading={loading || loadingMonthly.bonus}
             icon={
               <img 
                 src="/lovable-uploads/8be8d1a4-992a-4150-8d4b-ca76a352c53b.png" 
@@ -256,6 +374,26 @@ const Index = () => {
                 label: 'Average Val.' 
               }
             ]}
+            monthlyStats={monthlyData.bonus ? [
+              { 
+                value: monthlyData.bonus.depositedBonus.toLocaleString() || '0', 
+                label: 'Deposited Bonus', 
+                className: "col-span-2 md:col-span-1" 
+              },
+              { 
+                value: monthlyData.bonus.users.toString() || '0', 
+                label: 'Users' 
+              },
+              { 
+                value: monthlyData.bonus.count.toString() || '0', 
+                label: 'B. Count' 
+              },
+              { 
+                value: monthlyData.bonus.averageValue.toString() || '0', 
+                label: 'Average Val.' 
+              }
+            ] : undefined}
+            onRequestMonthlyData={() => fetchMonthlyDataForCard('bonus')}
           />
           
           {/* Players List Card - Full Width */}

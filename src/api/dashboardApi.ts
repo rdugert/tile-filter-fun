@@ -95,40 +95,41 @@ export async function fetchDashboardData(
     // Mock data adjusted based on filters
     const multiplier = casino === 'all' ? 1 : Math.random() * 0.5 + 0.2;
     const currencyFactor = currency === 'USD' ? 1 : currency === 'EUR' ? 0.9 : 1.2;
+    const timeframeFactor = timeframe === 'month' ? 30 : 1;
     
-    // Generate realistic mock data
+    // Generate realistic mock data with timeframe multiplier
     return {
       deposits: {
-        total: Math.floor(10685 * multiplier * currencyFactor),
-        psp: Math.floor(8690 * multiplier * currencyFactor),
-        cashCrypto: Math.floor(1995 * multiplier * currencyFactor),
-        depositors: Math.floor(31 * multiplier),
-        activeUsers: Math.floor(261 * multiplier),
-        signups: Math.floor(58 * multiplier),
-        fd: casino === 'all' ? 0 : Math.floor(5 * multiplier)
+        total: Math.floor(10685 * multiplier * currencyFactor * timeframeFactor),
+        psp: Math.floor(8690 * multiplier * currencyFactor * timeframeFactor),
+        cashCrypto: Math.floor(1995 * multiplier * currencyFactor * timeframeFactor),
+        depositors: Math.floor(31 * multiplier * timeframeFactor * 0.6), // Adding a 0.6 factor to make monthly numbers more realistic
+        activeUsers: Math.floor(261 * multiplier * (timeframe === 'month' ? 2.5 : 1)), // Different factor for active users
+        signups: Math.floor(58 * multiplier * (timeframe === 'month' ? 20 : 1)),
+        fd: casino === 'all' ? 0 : Math.floor(5 * multiplier * timeframeFactor * 0.8)
       },
       revenue: {
-        ggrRm: Math.floor(7028 * multiplier * currencyFactor),
-        ggr: Math.floor(22406 * multiplier * currencyFactor),
-        ggrRb: Math.floor(1288 * multiplier * currencyFactor),
-        ggrPb: Math.floor(3666 * multiplier * currencyFactor),
-        ggrTot: Math.floor(11982 * multiplier * currencyFactor)
+        ggrRm: Math.floor(7028 * multiplier * currencyFactor * timeframeFactor),
+        ggr: Math.floor(22406 * multiplier * currencyFactor * timeframeFactor),
+        ggrRb: Math.floor(1288 * multiplier * currencyFactor * timeframeFactor),
+        ggrPb: Math.floor(3666 * multiplier * currencyFactor * timeframeFactor),
+        ggrTot: Math.floor(11982 * multiplier * currencyFactor * timeframeFactor)
       },
       payouts: {
-        rmApproved: 0,
-        rbApproved: 0,
-        totApproved: 0,
-        pendingRm: Math.floor(10375 * multiplier * currencyFactor),
-        pendingRb: Math.floor(3620 * multiplier * currencyFactor),
-        pendingTot: Math.floor(13995 * multiplier * currencyFactor)
+        rmApproved: Math.floor(timeframe === 'month' ? 20 * multiplier : 0),
+        rbApproved: Math.floor(timeframe === 'month' ? 15 * multiplier : 0),
+        totApproved: Math.floor(timeframe === 'month' ? 35 * multiplier : 0),
+        pendingRm: Math.floor(10375 * multiplier * currencyFactor * (timeframe === 'month' ? 3 : 1)),
+        pendingRb: Math.floor(3620 * multiplier * currencyFactor * (timeframe === 'month' ? 3 : 1)),
+        pendingTot: Math.floor(13995 * multiplier * currencyFactor * (timeframe === 'month' ? 3 : 1))
       },
       bonus: {
-        depositedBonus: Math.floor(7006 * multiplier * currencyFactor),
-        users: Math.floor(100 * multiplier),
-        count: Math.floor(156 * multiplier),
-        averageValue: Math.floor(45 * currencyFactor)
+        depositedBonus: Math.floor(7006 * multiplier * currencyFactor * timeframeFactor),
+        users: Math.floor(100 * multiplier * (timeframe === 'month' ? 4 : 1)),
+        count: Math.floor(156 * multiplier * timeframeFactor * 0.7),
+        averageValue: Math.floor(45 * currencyFactor * (timeframe === 'month' ? 1.2 : 1))
       },
-      players: generateMockPlayers(casino, 10)
+      players: generateMockPlayers(casino, timeframe === 'month' ? 15 : 10)
     };
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
